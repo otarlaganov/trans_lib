@@ -1,5 +1,4 @@
 (function() {
-    document.write('<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>')
     document.write('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">')
     document.write('<script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>')
     document.write('<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>')
@@ -25,18 +24,17 @@
                     jsonData.forEach((entry) => {
                         if (Object.values(entry.translations).find((phrase) => phrase === text)) {
                             $(el).css('border', '1px dashed #ff9b00')
-
-                            $('body').append(`<i data-entry-id=${entry._id} class="fa fa-pencil" style="font-size:9px;cursor:pointer;position:absolute;left:${$(el)[0].offsetLeft + $(el)[0].clientWidth - 10}px;top:${$(el)[0].offsetTop + 5}px;color:#007bff;"></i>`)
+                            $(el).css('cursor', 'pointer')
+                            $(el).data('entry-id', entry._id)
+                            $(el).click((e) => {
+                                var entry_id = $(e.target).data('entry-id'); console.log(entry_id)
+                                node = jsonData.find(entry => entry._id === entry_id)
+                                if (node) {
+                                    $('#form-modal').modal('show')
+                                }
+                            })
                         }
                     })
-                })
-
-                $('i.fa-pencil').click((e) => {
-                    var entry_id = $(e.target).data('entry-id'); console.log(entry_id)
-                    node = jsonData.find(entry => entry._id === entry_id)
-                    if (node) {
-                        $('#form-modal').modal('show')
-                    }
                 })
             })
 
