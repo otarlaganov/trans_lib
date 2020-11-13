@@ -53,6 +53,8 @@
             console.log(jsonURL)
 
             function updateView() {
+                $('.edit-phrase').remove();
+
                 $('h1,h2,h3,h4,div,p,label,span,aside').contents().filter(
                     function() {
                         return this.nodeType === 3;
@@ -142,10 +144,11 @@
                     type: "POST",
                     url: `http://rosetta.mvsi.com/api/v1/nodes/${selectedEntry.node._id}/phrases/${selectedEntry.phraseKey}`,
                     timeout: 5000,
-                    data: {
+                    contentType: 'application/json',
+                    data: JSON.stringify({
                         "locale": code,
                         "value" : val
-                    },
+                    }),
                     success: function(data) {
                         console.log('successs');
                         jsonData[jsonData.findIndex(item => item._id === selectedEntry._id)].translations[code] = val;
@@ -155,6 +158,7 @@
                         alert("Error");
                     } 
                   });
+                  $('#form-modal').modal('hide');
             })
 
             // ============ Form Modal End
