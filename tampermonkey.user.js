@@ -36,53 +36,69 @@
     //# sourceMappingURL=bootstrap.min.js.map
 
     // Start developer code
-    
     setTimeout(function() {
 
         $(document).ready(function() {
+            var LANG_CODE_SET = __NEXT_DATA__.props.pageProps.step.availableLocales.map(locale => locale.iso)
+            // var LANG_CODE_SET = ['en-AU', 'cs', 'da', 'de', 'es', 'fi', 'fr', 'hu', 'it', 'nl', 'no', 'sv']
 
-            var LANG_CODE_SET = __NEXT_DATA__.props.pageProps.step.availableLocales.map(locale => locale.iso)//['en-AU', 'cs', 'da', 'de', 'es', 'fi', 'fr', 'hu', 'it', 'nl', 'no', 'sv']
-            
+
             var jsonData;
-            var node;
+            var selectedEntry;
 
 
             var nodeId = prompt("Please enter node ID to load");
 
             var jsonURL = nodeId ? `https://rosetta.mvsi.com/api/v1/nodes/${nodeId}/entries` : "https://raw.githubusercontent.com/otarlaganov/trans_lib/main/example.json"
             console.log(jsonURL)
+
+            function updateView() {
+                $('h1,h2,h3,h4,div,p,label,span,aside').contents().filter(
+                    function() {
+                        return this.nodeType === 3;
+                    }
+                ).each(function() {
+                    var text = this.textContent; 
+
+                    var candidates = {}
+                    var entries =jsonData.filter((item) => Object.values(item.translations).find((phrase) => {
+                        if (text.startsWith(phrase)) {
+                            candidates[item._id] = phrase;
+                            return true;
+                        }
+                        return false;
+                    }));
+                    entries.sort((item1, item2) => candidates[item2._id].length - candidates[item1._id].length);
+
+
+                    if (entries.length) {
+                        var entry = entries[0];
+                        $(this).parent().css('border', '1px dashed #ff9b00')
+                        $(this).parent().data('entry-id', entry._id)
+
+                        $(this).parent().append(`<i class="fa fa-pencil-alt edit-phrase" style="cursor:pointer;z-index:10000;font-size:10px;margin:5px;vertical-align:top;" data-entry-id="${entry._id}" title="${entry.translations['en-AU']}"></i>`);
+
+                    }
+                })
+            }
+
             $.get(jsonURL, function (data) {
                 jsonData = JSON.parse(data)
 
-                $('h1,h2,h3,h4,div,p,label,span').filter(
-                    function(index) {
-                        return $(this).children().length === 0 || $(this).children().length === 1;
-                    }
-                ).each((i, el) => {
-                    var text = $(el).html();
-
-                    jsonData.forEach((entry) => {
-                        if (Object.values(entry.translations).find((phrase) => text.startsWith(phrase))) {
-                            $(el).css('border', '1px dashed #ff9b00')
-                            $(el).css('cursor', 'pointer')
-                            $(el).data('entry-id', entry._id)
-                            $(el).click((e) => {
-                                var entry_id = $(e.target).data('entry-id'); 
-                                node = jsonData.find(entry => entry._id === entry_id)
-                                if (node) {
-                                    $('#form-modal').modal('show')
-                                }
-                            })
-                        }
-                    })
-                })
+                updateView()
             })
 
+            /**
+             * Form Modal Creation
+             */
             var html = LANG_CODE_SET.map((code) => (
                 `<div class="form-group row">
                     <label for="inputEmail3" class="col-sm-2 col-form-label">${code}</label>
-                    <div class="col-sm-10">
+                    <div class="col-sm-8">
                     <input type="text" class="form-control" id="input-${code}" placeholder="">
+                    </div>
+                    <div class="col-sm-2 text-right">
+                    <button type="button" class="btn btn-primary btn-save" data-code="${code}">Save</button>                
                     </div>
                 </div>`
             )).join('')
@@ -103,7 +119,6 @@
                 '</form>' +
                 '</div>' +
                 '<div class="modal-footer">' +
-                '<button type="button" class="btn btn-primary">Save</button>' +
                 '</div>' +
                 '</div>' +
                 '</div>' +
@@ -111,13 +126,49 @@
             )
 
             $('#form-modal').on('show.bs.modal', function (e) {
-                if (!node) e.preventDefault()
+                if (!selectedEntry) e.preventDefault()
                 var modal = $(this)
-                modal.find('.modal-title').text('Entry ID: ' + node._id)
-                Object.keys(node.translations).forEach((code) => {
-                    modal.find(`.modal-body input[id="input-${code}"]`).val(node.translations[code])
+                modal.find('.modal-title').text('Entry ID: ' + selectedEntry._id)
+                Object.keys(selectedEntry.translations).forEach((code) => {
+                    modal.find(`.modal-body input[id="input-${code}"]`).val(selectedEntry.translations[code])
                 })
             })
+
+            // TODO: It should work with real API endpoint
+            $('#form-modal .btn-save').click(function(e) {
+                var code = $(e.target).data('code')
+                var val = $(`#input-${code}`).val()
+                $.ajax({
+                    type: "POST",
+                    url: `http://rosetta.mvsi.com/api/v1/nodes/${selectedEntry.node._id}/phrases/${selectedEntry.phraseKey}`,
+                    timeout: 5000,
+                    data: {
+                        "locale": code,
+                        "value" : val
+                    },
+                    success: function(data) {
+                        console.log('successs');
+                        jsonData[jsonData.findIndex(item => item._id === selectedEntry._id)].translations[code] = val;
+                        updateView();
+                    },
+                    error:function(){
+                        alert("Error");
+                    } 
+                  });
+            })
+
+            // ============ Form Modal End
+
+            $('body').on('click', '.edit-phrase', (e) => {
+                var entry_id = $(e.target).data('entry-id');
+                selectedEntry = jsonData.find(entry => entry._id === entry_id)
+                if (selectedEntry) {
+                    $('#form-modal').modal('show')
+                    e.stopPropagation()
+                }
+            })
+
+            
         })
     }, 100)
 

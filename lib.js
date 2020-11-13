@@ -79,5 +79,21 @@
                 })
             })
         })
+        console.log($( ".container" )
+        .contents()
+          .filter(function() {
+            return this.nodeType === 3;
+          }))
+
+        $( ".container" )
+  .contents()
+    .filter(function() {
+      return this.nodeType === 3;
+    })
+      .wrap( "<p></p>" )
+      .end()
+    .filter( "br" )
+    .remove();
+    
     }, 100)
 })();
