@@ -36,12 +36,13 @@
     //# sourceMappingURL=bootstrap.min.js.map
 
     // Start developer code
-    var LANG_CODE_SET = __NEXT_DATA__.props.pageProps.step.availableLocales.map(locale => locale.iso)//['en-AU', 'cs', 'da', 'de', 'es', 'fi', 'fr', 'hu', 'it', 'nl', 'no', 'sv']
-
+    
     setTimeout(function() {
 
         $(document).ready(function() {
 
+            var LANG_CODE_SET = __NEXT_DATA__.props.pageProps.step.availableLocales.map(locale => locale.iso)//['en-AU', 'cs', 'da', 'de', 'es', 'fi', 'fr', 'hu', 'it', 'nl', 'no', 'sv']
+            
             var jsonData;
             var node;
 
